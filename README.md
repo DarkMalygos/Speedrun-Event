@@ -7,13 +7,13 @@ A rendszer célja, hogy kezelje a jelentkezéseket, a várólistát és a lemond
 - **Backend**: Symfony Framework (REST API)
 - **Adatbázis**: MySQL
 - **Frontend**: Twig + Bootstrap
-- **Fejlesztői cél**: Gyors protótípus, jól struktúrált REST API végpontokkal és egyszerű, letisztult felhasználói felülettel
+- **Fejlesztői cél**: Jól struktúrált REST API végpontok, egyszerű, letisztult felhasználói felülettel
 
 ## Funkcionalitás
 - Felhasználói jelentkezés az eseményre
 - Férőhely kezelés és várólista logika
 - Lemondás és automatikus várólista-feloldás
-- REST API végpoontok
+- REST API végpontok
 - Bootstrap-alapú felhasználói felület Twig template-ekkel
 
 ---
