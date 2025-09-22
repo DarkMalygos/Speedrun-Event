@@ -32,7 +32,7 @@ A rendszer célja, hogy kezelje a jelentkezéseket, a várólistát és a lemond
 - Adatbázis létrehozása: php bin/console doctrine:database:create (IDE terminal-ban is lehet)
 - Az adatbázisba SQL lekérdezéseket ne futtasson, a migráció mindent létrehoz Önnek!
 
-## Migrációk futtatása a létrehozott adatbázison
+## Migráció futtatása a létrehozott adatbázison
 - php bin/console doctrine:migrations:migrate
 
 ## Szerver elindítása:
