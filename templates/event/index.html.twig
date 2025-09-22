@@ -1,0 +1,199 @@
+
+{% block body %}
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedrun event</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{{ path('event_page') }}">Speedrun event</a>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if spectator %}
+                    <span class="text-muted small">Szia, {{ spectator.spectatorName }} ({{ spectator.email }})</span>
+                    <form method="post" action="{{ path('event_logout') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('logout') }}">
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">Kijelentkezés</button>
+                    </form>
+                {% else %}
+                    <span class="me-2 text-muted d-none d-md-inline">Kérlek jelentkezz be</span>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Bejelentkezés</button>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Regisztráció</button>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container my-4">
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert" data-bs-auto-dismiss="true">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Bezárás"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% if spectator %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-1">{{ event.runName }}</h5>
+                    <div class="text-muted mb-3">
+                        {% if freeSlots > 0 %}
+                            Szabad helyek száma: {{ freeSlots }}
+                        {% else %}
+                            Nincs szabad hely! 
+                            {% if waitlistPosition %}
+                                - A Várólistán a pozíciód: {{ waitlistPosition }}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Jelentkezéseim</h6>
+
+                        {% if registrations|length == 0 %}
+                            <form method="post" action="{{ path('add_registration') }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('reg_add') }}">
+                                <button class="btn btn-success btn-sm" type="submit">+ Jelentkezem</button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    {% if registrations|length == 0 %}
+                        <p class="text-muted">Még nem jelentkeztél.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Státusz</th>
+                                        <th>Várólista pozíció</th>
+                                        <th class="text-end">Műveletek</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for r in registrations %}
+                                    <tr>
+                                        <td>{{ r.id }}</td>
+                                        <td>
+                                            {% if r.status.value == 'standby' %}
+                                                <span class="badge bg-success">Jelentkezett</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Várólistán</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ r.waitlistPosition ?? '-' }}</td>
+                                        <td class="text-end">
+                                            <form method="post" action="{{ path('delete_registration', {id: r.id}) }}"
+                                                    onsubmit="return confirm('Biztosan törlöd?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('reg_del_' ~ r.id) }}">
+                                                <button class="btn btn-outline-danger btn-sm" type="submit">Törlés</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <p class="lead mb-0">A foglalásaid megtekintéséhez be kell jelentkezned.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post" action="{{ path('event_login') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Bejelentkezés</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Bezárás"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('login') }}">
+                    <div class="mb-3">
+                        <label class="form-label">E-mail</label>
+                        <input type="email" name="email" class="form-control" placeholder="pelda@domain.hu" 
+                        value="{{ prefillEmail|default('') }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jelszó</label>
+                        <input type="password" name="password" class="form-control" placeholder="**********" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Mégse</button>
+                    <button class="btn btn-primary" type="submit">Bejelentkezés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form class="modal-content" method="post" action="{{ path('event_register') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Regisztráció</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Bezárás"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('register') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Név</label>
+                        <input type="text" name="name" class="form-control" placeholder="Teljes név" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">E-mail</label>
+                        <input type="email" name="email" class="form-control" placeholder="pelda@domain.hu" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jelszó</label>
+                        <input type="password" name="password" class="form-control" placeholder="**********" required>
+                    </div>
+                    <div class="form-text">
+                        Ha az e-mail címed már létezik, akkor átirányítunk a bejelentkezéshez.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Mégse</button>
+                    <button class="btn btn-primary" type="submit">Regisztráció</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const alerts = document.querySelectorAll('.alert[data-bs-auto-dismiss]');
+                alerts.forEach((alert) => {
+                setTimeout(() => {
+                    let bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                    bsAlert.close();
+                }, 2000);
+                });
+
+                {% if openModal in ['login', 'register'] %}
+                    let id = '{{ openModal == "login" ? "loginModal" : "registerModal" }}';
+                    let modalEl = document.getElementById(id);
+                    if (modalEl) {
+                        let modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }
+                {% endif %}
+            });
+        </script>
+</body>
+</html>
+{% endblock %}
