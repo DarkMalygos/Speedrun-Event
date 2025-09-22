@@ -6,7 +6,7 @@ A rendszer célja, hogy kezelje a jelentkezéseket, a várólistát és a lemond
 ## Technológiai stack
 - **Backend**: Symfony Framework (REST API)
 - **Adatbázis**: MySQL
-- **Frontend**: Twig + Bootstrap
+- **Frontend**: Twig + Bootstrap + JavaScript
 - **Fejlesztői cél**: Jól struktúrált REST API végpontok, egyszerű, letisztult felhasználói felülettel
 
 ## Funkcionalitás
